@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contratos CAMPPAX</title>
+<meta name="description" content="Aplicativo de negociação de cacau da CAMPPAX — simule venda e compra, acompanhe as metas do ano e a cotação do dia.">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CAMPPAX">
+<meta name="theme-color" content="#1f3764">
+<style>
+  :root{--laranja:#FF6E00;--laranja-acao:#C05000;--navy:#1f3764}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Ubuntu,Calibri,system-ui,sans-serif;background:var(--navy);color:#fff;
+       min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+       text-align:center;padding:28px 20px;gap:18px}
+  img.logo{width:96px;height:96px;border-radius:22px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+  h1{font-size:26px;font-weight:700}
+  p.sub{font-size:15px;opacity:.9;max-width:360px;line-height:1.5}
+  a.btn{display:block;width:100%;max-width:360px;background:var(--laranja);color:#fff;
+        text-decoration:none;font-size:18px;font-weight:700;padding:16px 20px;border-radius:12px;
+        box-shadow:0 4px 16px rgba(255,110,0,.45)}
+  a.btn:active{background:var(--laranja-acao)}
+  .instalar{margin-top:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
+            border-radius:14px;padding:18px;max-width:360px;font-size:14px;line-height:1.6;text-align:left}
+  .instalar h2{font-size:15px;margin-bottom:6px}
+  .instalar h3{font-size:14px;margin:14px 0 4px;display:flex;align-items:center;gap:8px}
+  .instalar ol{margin:4px 0 0 20px}
+  .instalar li{margin-bottom:6px}
+  .instalar .dica{margin-top:12px;font-size:12.5px;opacity:.85;border-top:1px dashed rgba(255,255,255,.25);padding-top:10px}
+  .ico{display:inline-flex;vertical-align:-4px;width:20px;height:20px;background:rgba(255,255,255,.15);
+       border-radius:5px;align-items:center;justify-content:center}
+  .ico svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .ico.dots svg{stroke:none;fill:#fff}
+  b{color:#ffd9b8}
+  footer{font-size:11px;opacity:.55;margin-top:4px}
+</style>
+</head>
+<body>
+  <img class="logo" src="icon-192.png" alt="CAMPPAX">
+  <h1>Contratos CAMPPAX</h1>
+  <p class="sub">Aplicativo de negociação de cacau da CAMPPAX: simule a <b>venda</b> ou a <b>compra</b> antes de fechar o negócio, acompanhe as <b>duas metas do ano</b> (sobra por quilo e volume) e registre a <b>cotação do dia</b>.</p>
+  <a class="btn" id="abrir" href="https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec">Abrir o aplicativo</a>
+
+  <div class="instalar">
+    <h2>📲 Instalar no celular <span style="font-weight:400;opacity:.8">(recomendado — vira um aplicativo com ícone próprio)</span></h2>
+
+    <h3><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> No iPhone (Safari ou Chrome)</h3>
+    <ol>
+      <li>Toque no botão <b>Compartilhar</b> <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> na barra do navegador (o quadradinho com a seta pra cima);</li>
+      <li>Role a lista e toque em <b>"Adicionar à Tela de Início"</b>;</li>
+      <li>Toque em <b>"Adicionar"</b> no canto superior.</li>
+    </ol>
+
+    <h3><span class="ico dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></span> No Android (Chrome)</h3>
+    <ol>
+      <li>Toque no menu <b>⋮</b> (três pontinhos, canto superior direito);</li>
+      <li>Toque em <b>"Adicionar à tela inicial"</b> (em alguns aparelhos: "Instalar aplicativo");</li>
+      <li>Confirme em <b>"Adicionar"</b>.</li>
+    </ol>
+
+    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).</div>
+  </div>
+
+  <footer>Mand<span style="color:var(--laranja)">ū</span> × CAMPPAX · 2026</footer>
+<script>
+  // Aberto pelo ícone da tela de início (modo app) → vai direto pro aplicativo.
+  // No navegador comum a página aparece (senão não há tempo de instalar).
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if (standalone) { window.location.replace(document.getElementById('abrir').href); }
+</script>
+</body>
+</html>
