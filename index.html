@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Contratos CAMPPAX</title>
 <meta name="description" content="Aplicativo de negociação de cacau da CAMPPAX — simule venda e compra, acompanhe as metas do ano e a cotação do dia.">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- R6 §12.7: preload dos ícones — garante o ícone certo já na 1ª abertura
+     (fix do ícone que não carregava nas primeiras visitas)                 -->
+<link rel="preload" as="image" href="icon-192.png">
+<link rel="preload" as="image" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,9 +42,22 @@
   .ico.dots svg{stroke:none;fill:#fff}
   b{color:#ffd9b8}
   footer{font-size:11px;opacity:.55;margin-top:4px}
+  /* modo app (experimento iframe): esconde o conteúdo, mostra splash até o app responder */
+  body.app-mode>:not(#appframe):not(#splash){display:none}
+  #splash{display:none;flex-direction:column;align-items:center;gap:14px}
+  body.app-mode #splash{display:flex}
+  body.app-mode.framed #splash{display:none}
+  #splash img{animation:pulse 1.2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  #appframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--navy)}
 </style>
 </head>
 <body>
+  <div id="splash" aria-hidden="true">
+    <img class="logo" src="icon-192.png" alt="">
+    <p class="sub">Abrindo o aplicativo…</p>
+  </div>
+
   <img class="logo" src="icon-192.png" alt="CAMPPAX">
   <h1>Contratos CAMPPAX</h1>
   <p class="sub">Aplicativo de negociação de cacau da CAMPPAX: simule a <b>venda</b> ou a <b>compra</b> antes de fechar o negócio, acompanhe as <b>duas metas do ano</b> (sobra por quilo e volume) e registre a <b>cotação do dia</b>.</p>
@@ -63,15 +80,64 @@
       <li>Confirme em <b>"Adicionar"</b>.</li>
     </ol>
 
-    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).</div>
+    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).<br><br>ℹ️ Da próxima vez, esta página abre o aplicativo direto. Pra rever estas instruções, abra <b>…?ficar=1</b> no fim do endereço.</div>
   </div>
 
   <footer>Mand<span style="color:var(--laranja)">ū</span> × CAMPPAX · 2026</footer>
 <script>
-  // Aberto pelo ícone da tela de início (modo app) → vai direto pro aplicativo.
-  // No navegador comum a página aparece (senão não há tempo de instalar).
-  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if (standalone) { window.location.replace(document.getElementById('abrir').href); }
+/* ============================================================================
+   Launcher R6 (CONTRACT §12.7)
+   1) localStorage marca a visita → da 2ª abertura em diante vai DIRETO pro app
+      (sem tela de instruções). Escape: ?ficar=1 mostra a página de novo.
+   2) EXPERIMENTO IFRAME (só no modo app/standalone): carrega o /exec dentro de
+      um iframe fullscreen NESTE domínio — o iOS não mostra a barra cinza de
+      "script.google.com". Detecção de sucesso: o app (Index.html R6) manda
+      postMessage('camppax-app-ok') pro window.top quando carrega de verdade.
+      Sem mensagem em 9s (X-Frame-Options bloqueou, login Google quebrou, rede
+      lenta demais) → remove o iframe e cai pro redirect de sempre.
+      · Resultado ESPERADO hoje: FALLBACK — o doGet do Motor ainda não seta
+        setXFrameOptionsMode(ALLOWALL) (pendência Motor R6) e o login Google
+        se recusa a abrir em iframe quando a sessão não existe. O experimento
+        fica pronto e inofensivo: se o Motor liberar o framing e a sessão já
+        existir, o iframe passa a funcionar sozinho.
+      · REVERTER: IFRAME_EXPERIMENT = false (volta ao redirect puro).
+   ========================================================================== */
+var APP_URL = document.getElementById('abrir').href;
+var IFRAME_EXPERIMENT = false; // DESLIGADO 16/07 (orquestrador): backend ainda não permite framing → true custaria 9s de splash por abertura. Ligar só depois do teste ALLOWALL+login no iPhone.
+var TIMEOUT_MS = 9000;
+
+var ficar = /[?&]ficar=1/.test(location.search || '');
+var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+var jaVisitou = false;
+try{
+  jaVisitou = localStorage.getItem('camppax_visitou') === '1';
+  localStorage.setItem('camppax_visitou', '1');
+}catch(e){}
+
+function irDireto(){ window.location.replace(APP_URL); }
+
+function tentarIframe(){
+  document.body.classList.add('app-mode');
+  var ok = false;
+  var fr = document.createElement('iframe');
+  fr.id = 'appframe';
+  fr.src = APP_URL;
+  fr.setAttribute('title', 'Contratos CAMPPAX');
+  var to = setTimeout(function(){ if(!ok){ try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
+  window.addEventListener('message', function(ev){
+    if(ev && ev.data === 'camppax-app-ok'){
+      ok = true;
+      clearTimeout(to);
+      document.body.classList.add('framed');
+    }
+  });
+  document.body.appendChild(fr);
+}
+
+if(!ficar && (standalone || jaVisitou)){
+  if(IFRAME_EXPERIMENT && standalone){ tentarIframe(); }
+  else { irDireto(); }
+}
 </script>
 </body>
 </html>
