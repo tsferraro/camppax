@@ -80,7 +80,7 @@
       <li>Confirme em <b>"Adicionar"</b>.</li>
     </ol>
 
-    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).<br><br>ℹ️ Da próxima vez, esta página abre o aplicativo direto. Pra rever estas instruções, abra <b>…?ficar=1</b> no fim do endereço.</div>
+    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).<br><br>ℹ️ Depois de instalado, o ícone abre o aplicativo direto — sem passar por esta página.</div>
   </div>
 
   <footer>Mand<span style="color:var(--laranja)">ū</span> × CAMPPAX · 2026</footer>
@@ -103,16 +103,17 @@
       · REVERTER: IFRAME_EXPERIMENT = false (volta ao redirect puro).
    ========================================================================== */
 var APP_URL = document.getElementById('abrir').href;
-var IFRAME_EXPERIMENT = false; // DESLIGADO 16/07 (orquestrador): backend ainda não permite framing → true custaria 9s de splash por abertura. Ligar só depois do teste ALLOWALL+login no iPhone.
+var IFRAME_EXPERIMENT = false; // liga JUNTO com a Nova versão R6.1 (app precisa do ALLOWALL primeiro, senão memoriza 'nao' à toa). Memória: falhou 1x → não insiste.
 var TIMEOUT_MS = 9000;
 
 var ficar = /[?&]ficar=1/.test(location.search || '');
+var forcarIframe = /[?&]iframe=1/.test(location.search || ''); // re-testa mesmo com memória "não"
 var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-var jaVisitou = false;
-try{
-  jaVisitou = localStorage.getItem('camppax_visitou') === '1';
-  localStorage.setItem('camppax_visitou', '1');
-}catch(e){}
+// FIX 16/07 (Tobia): NO NAVEGADOR a página SEMPRE fica — o redirect por "já visitou"
+// fugia antes da pessoa conseguir tocar Compartilhar→Adicionar à Tela (instalação).
+// Redirect automático SÓ em modo app (atalho instalado). Navegador = 1 toque em "Abrir".
+var iframeMem = '';
+try{ iframeMem = localStorage.getItem('camppax_iframe') || ''; }catch(e){} // ''=nunca testou · 'sim' · 'nao'
 
 function irDireto(){ window.location.replace(APP_URL); }
 
@@ -123,19 +124,22 @@ function tentarIframe(){
   fr.id = 'appframe';
   fr.src = APP_URL;
   fr.setAttribute('title', 'Contratos CAMPPAX');
-  var to = setTimeout(function(){ if(!ok){ try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
+  // Falhou (X-Frame bloqueou, login não abriu, rede) → memoriza e NUNCA mais paga o timeout: vai direto.
+  var to = setTimeout(function(){ if(!ok){ try{ localStorage.setItem('camppax_iframe','nao'); }catch(e){} try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
   window.addEventListener('message', function(ev){
     if(ev && ev.data === 'camppax-app-ok'){
       ok = true;
       clearTimeout(to);
+      try{ localStorage.setItem('camppax_iframe','sim'); }catch(e){}
       document.body.classList.add('framed');
     }
   });
   document.body.appendChild(fr);
 }
 
-if(!ficar && (standalone || jaVisitou)){
-  if(IFRAME_EXPERIMENT && standalone){ tentarIframe(); }
+if(!ficar && standalone){
+  var querIframe = IFRAME_EXPERIMENT && (forcarIframe || iframeMem !== 'nao');
+  if(querIframe){ tentarIframe(); }
   else { irDireto(); }
 }
 </script>
