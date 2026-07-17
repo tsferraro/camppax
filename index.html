@@ -103,7 +103,7 @@
       · REVERTER: IFRAME_EXPERIMENT = false (volta ao redirect puro).
    ========================================================================== */
 var APP_URL = document.getElementById('abrir').href;
-var IFRAME_EXPERIMENT = false; // liga JUNTO com a Nova versão R6.1 (app precisa do ALLOWALL primeiro, senão memoriza 'nao' à toa). Memória: falhou 1x → não insiste.
+var IFRAME_EXPERIMENT = true; // LIGADO 2026-07-17 (Nova versão R7+R8 com ALLOWALL confirmada no ar). Memória: falhou 1x → não insiste; ?iframe=1 força reteste.
 var TIMEOUT_MS = 9000;
 
 var ficar = /[?&]ficar=1/.test(location.search || '');
