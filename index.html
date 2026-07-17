@@ -13,7 +13,8 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- §16.3 · 'default' dá status bar navy previsível (black-translucent é deprecado pela Apple e joga texto sob o relógio) -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CAMPPAX">
 <meta name="theme-color" content="#1f3764">
 <style>
@@ -42,15 +43,26 @@
   .ico.dots svg{stroke:none;fill:#fff}
   b{color:#ffd9b8}
   footer{font-size:11px;opacity:.55;margin-top:4px}
-  /* modo app (experimento iframe): esconde o conteúdo, mostra splash até o app responder */
+  /* modo app (experimento iframe): esconde o conteúdo, mostra splash até o app responder.
+     §16.3: html.app-mode é setado inline no <head> (antes do body pintar) → mata o flash. */
+  html.app-mode body>:not(#appframe):not(#splash){display:none}
   body.app-mode>:not(#appframe):not(#splash){display:none}
   #splash{display:none;flex-direction:column;align-items:center;gap:14px}
-  body.app-mode #splash{display:flex}
+  html.app-mode #splash, body.app-mode #splash{display:flex}
   body.app-mode.framed #splash{display:none}
   #splash img{animation:pulse 1.2s ease-in-out infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
   #appframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--navy)}
 </style>
+<script>
+/* §16.3 · mata o flash (research 17/07): decide standalone AQUI no <head>, antes do
+   body pintar. Se for atalho instalado, marca html.app-mode → o CSS já esconde a
+   tela de instruções e mostra só o splash. A lógica de iframe/redirect segue no fim. */
+(function(){ try{
+  var sa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  if(sa && !/[?&]ficar=1/.test(location.search||'')) document.documentElement.classList.add('app-mode');
+}catch(e){} })();
+</script>
 </head>
 <body>
   <div id="splash" aria-hidden="true">
@@ -104,7 +116,7 @@
    ========================================================================== */
 var APP_URL = document.getElementById('abrir').href;
 var IFRAME_EXPERIMENT = true; // LIGADO 2026-07-17 (Nova versão R7+R8 com ALLOWALL confirmada no ar). Memória: falhou 1x → não insiste; ?iframe=1 força reteste.
-var TIMEOUT_MS = 9000;
+var TIMEOUT_MS = 5000; // §16.3: 9s parado numa splash é uma eternidade; a detecção por contentWindow.length costuma resolver em <1s.
 
 var ficar = /[?&]ficar=1/.test(location.search || '');
 var forcarIframe = /[?&]iframe=1/.test(location.search || ''); // re-testa mesmo com memória "não"
@@ -119,21 +131,26 @@ function irDireto(){ window.location.replace(APP_URL); }
 
 function tentarIframe(){
   document.body.classList.add('app-mode');
-  var ok = false;
+  var ok = false, poll = null, to = null;
   var fr = document.createElement('iframe');
   fr.id = 'appframe';
   fr.src = APP_URL;
   fr.setAttribute('title', 'Contratos CAMPPAX');
+  function sucesso(){
+    if(ok) return; ok = true;
+    if(to) clearTimeout(to); if(poll) clearInterval(poll);
+    try{ localStorage.setItem('camppax_iframe','sim'); }catch(e){}
+    document.body.classList.add('framed'); // esconde o splash, mostra o iframe
+  }
   // Falhou (X-Frame bloqueou, login não abriu, rede) → memoriza e NUNCA mais paga o timeout: vai direto.
-  var to = setTimeout(function(){ if(!ok){ try{ localStorage.setItem('camppax_iframe','nao'); }catch(e){} try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
-  window.addEventListener('message', function(ev){
-    if(ev && ev.data === 'camppax-app-ok'){
-      ok = true;
-      clearTimeout(to);
-      try{ localStorage.setItem('camppax_iframe','sim'); }catch(e){}
-      document.body.classList.add('framed');
-    }
-  });
+  to = setTimeout(function(){ if(!ok){ if(poll) clearInterval(poll); try{ localStorage.setItem('camppax_iframe','nao'); }catch(e){} try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
+  // §16.3 · detecção PRIMÁRIA (research): o wrapper do Apps Script expõe contentWindow.length
+  // (nº de subframes) — 1 = userHtml carregou/autorizado · 0 = login/erro. Mais confiável que
+  // postMessage, que o Google às vezes derruba nos frames aninhados. Leitura cross-origin de
+  // .length é permitida; try/catch cobre exceções.
+  poll = setInterval(function(){ try{ if(fr.contentWindow && fr.contentWindow.length === 1) sucesso(); }catch(e){} }, 400);
+  // detecção SECUNDÁRIA: postMessage do app (Index.html manda 'camppax-app-ok' ao carregar)
+  window.addEventListener('message', function(ev){ if(ev && ev.data === 'camppax-app-ok') sucesso(); });
   document.body.appendChild(fr);
 }
 
