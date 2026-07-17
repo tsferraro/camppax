@@ -3,161 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Contratos CAMPPAX</title>
+<title>CAMPPAX</title>
 <meta name="description" content="Aplicativo de negociação de cacau da CAMPPAX — simule venda e compra, acompanhe as metas do ano e a cotação do dia.">
-<!-- R6 §12.7: preload dos ícones — garante o ícone certo já na 1ª abertura
-     (fix do ícone que não carregava nas primeiras visitas)                 -->
+<!-- Ícone da tela de início: sobrevive SEM standalone (apple-touch-icon governa o ícone
+     independente do modo app). §16.5 R10 (pesquisa 3ª rodada). -->
 <link rel="preload" as="image" href="icon-192.png">
 <link rel="preload" as="image" href="apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<!-- §16.3 · 'default' dá status bar navy previsível (black-translucent é deprecado pela Apple e joga texto sob o relógio) -->
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="CAMPPAX">
 <meta name="theme-color" content="#1f3764">
+<!-- §16.5 R10 · DECISÃO: NÃO declarar apple-mobile-web-app-capable / mobile-web-app-capable.
+     O modo "app puro" (standalone) do iOS usa cookie-jar SEPARADO do Safari → o /exec do
+     Apps Script dá 403 (sessão Google não compartilhada) → login → barras pretas. Sem a meta,
+     o atalho abre numa aba NORMAL do Safari, compartilha a sessão, e o app funciona inteiro.
+     iframe e launcher-no-GAS morrem pela mesma causa (ver research-launcher-pwa.md). -->
 <style>
   :root{--laranja:#FF6E00;--laranja-acao:#C05000;--navy:#1f3764}
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:Ubuntu,Calibri,system-ui,sans-serif;background:var(--navy);color:#fff;
-       min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-       text-align:center;padding:28px 20px;gap:18px}
-  img.logo{width:96px;height:96px;border-radius:22px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
-  h1{font-size:26px;font-weight:700}
-  p.sub{font-size:15px;opacity:.9;max-width:360px;line-height:1.5}
-  a.btn{display:block;width:100%;max-width:360px;background:var(--laranja);color:#fff;
-        text-decoration:none;font-size:18px;font-weight:700;padding:16px 20px;border-radius:12px;
-        box-shadow:0 4px 16px rgba(255,110,0,.45)}
-  a.btn:active{background:var(--laranja-acao)}
-  .instalar{margin-top:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);
-            border-radius:14px;padding:18px;max-width:360px;font-size:14px;line-height:1.6;text-align:left}
-  .instalar h2{font-size:15px;margin-bottom:6px}
+       min-height:100vh;display:flex;flex-direction:column;align-items:center;
+       text-align:center;padding:26px 20px 30px;gap:14px}
+  img.logo{width:84px;height:84px;border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+  h1{font-size:24px;font-weight:700}
+  p.sub{font-size:14px;opacity:.9;max-width:360px;line-height:1.5}
+  /* §16.5 R10 · a INSTRUÇÃO é a protagonista (a turma clicava no botão antes de ler e
+     pulava a instalação). O "abrir" fica secundário, embaixo. */
+  .instalar{margin-top:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
+            border-radius:16px;padding:18px;max-width:380px;font-size:14px;line-height:1.6;text-align:left}
+  .instalar h2{font-size:17px;margin-bottom:4px;text-align:center}
+  .instalar .lead{font-size:13px;opacity:.9;text-align:center;margin-bottom:10px}
   .instalar h3{font-size:14px;margin:14px 0 4px;display:flex;align-items:center;gap:8px}
   .instalar ol{margin:4px 0 0 20px}
   .instalar li{margin-bottom:6px}
+  .instalar li.crit{background:rgba(255,110,0,.16);border:1px solid rgba(255,110,0,.5);
+                    border-radius:8px;padding:6px 8px;list-style-position:inside;margin-left:-16px}
   .instalar .dica{margin-top:12px;font-size:12.5px;opacity:.85;border-top:1px dashed rgba(255,255,255,.25);padding-top:10px}
   .ico{display:inline-flex;vertical-align:-4px;width:20px;height:20px;background:rgba(255,255,255,.15);
        border-radius:5px;align-items:center;justify-content:center}
   .ico svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .ico.dots svg{stroke:none;fill:#fff}
   b{color:#ffd9b8}
-  footer{font-size:11px;opacity:.55;margin-top:4px}
-  /* modo app (experimento iframe): esconde o conteúdo, mostra splash até o app responder.
-     §16.3: html.app-mode é setado inline no <head> (antes do body pintar) → mata o flash. */
-  html.app-mode body>:not(#appframe):not(#splash){display:none}
-  body.app-mode>:not(#appframe):not(#splash){display:none}
-  #splash{display:none;flex-direction:column;align-items:center;gap:14px}
-  html.app-mode #splash, body.app-mode #splash{display:flex}
-  body.app-mode.framed #splash{display:none}
-  #splash img{animation:pulse 1.2s ease-in-out infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-  #appframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--navy)}
+  /* botão de abrir: SECUNDÁRIO (contorno, não o laranja cheio) — não compete com a instrução */
+  a.abrir-sec{display:inline-block;margin-top:6px;color:#fff;text-decoration:none;font-size:15px;
+        font-weight:600;padding:12px 22px;border-radius:11px;border:1.5px solid rgba(255,255,255,.55)}
+  a.abrir-sec:active{background:rgba(255,255,255,.12)}
+  footer{font-size:11px;opacity:.55;margin-top:8px}
 </style>
-<script>
-/* §16.3 · mata o flash (research 17/07): decide standalone AQUI no <head>, antes do
-   body pintar. Se for atalho instalado, marca html.app-mode → o CSS já esconde a
-   tela de instruções e mostra só o splash. A lógica de iframe/redirect segue no fim. */
-(function(){ try{
-  var sa = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  if(sa && !/[?&]ficar=1/.test(location.search||'')) document.documentElement.classList.add('app-mode');
-}catch(e){} })();
-</script>
 </head>
 <body>
-  <div id="splash" aria-hidden="true">
-    <img class="logo" src="icon-192.png" alt="">
-    <p class="sub">Abrindo o aplicativo…</p>
-  </div>
-
   <img class="logo" src="icon-192.png" alt="CAMPPAX">
   <h1>Contratos CAMPPAX</h1>
-  <p class="sub">Aplicativo de negociação de cacau da CAMPPAX: simule a <b>venda</b> ou a <b>compra</b> antes de fechar o negócio, acompanhe as <b>duas metas do ano</b> (sobra por quilo e volume) e registre a <b>cotação do dia</b>.</p>
-  <a class="btn" id="abrir" href="https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec">Abrir o aplicativo</a>
+  <p class="sub">Simule a <b>venda</b> ou a <b>compra</b> de cacau antes de fechar o negócio, acompanhe as <b>metas do ano</b> e registre a <b>cotação do dia</b>.</p>
 
   <div class="instalar">
-    <h2>📲 Instalar no celular <span style="font-weight:400;opacity:.8">(recomendado — vira um aplicativo com ícone próprio)</span></h2>
+    <h2>📲 Instale na tela de início</h2>
+    <p class="lead">Vira um app com o ícone Mandū e abre rápido. Faça isto <b>aqui nesta página</b>, antes de abrir o app.</p>
 
-    <h3><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> No iPhone (Safari ou Chrome)</h3>
+    <h3><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> No iPhone (Safari)</h3>
     <ol>
-      <li>Toque no botão <b>Compartilhar</b> <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> na barra do navegador (o quadradinho com a seta pra cima);</li>
-      <li>Role a lista e toque em <b>"Adicionar à Tela de Início"</b>;</li>
-      <li>Toque em <b>"Adicionar"</b> no canto superior.</li>
+      <li>Toque em <b>Compartilhar</b> <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> (o quadradinho com a seta pra cima);</li>
+      <li>Toque em <b>"Adicionar à Tela de Início"</b>;</li>
+      <li class="crit">⚠️ Se aparecer <b>"Abrir como Web App"</b>, <b>DESLIGUE</b> essa opção — senão o app pede login e não abre;</li>
+      <li>Toque em <b>"Adicionar"</b>.</li>
     </ol>
 
     <h3><span class="ico dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></span> No Android (Chrome)</h3>
     <ol>
       <li>Toque no menu <b>⋮</b> (três pontinhos, canto superior direito);</li>
-      <li>Toque em <b>"Adicionar à tela inicial"</b> (em alguns aparelhos: "Instalar aplicativo");</li>
+      <li>Toque em <b>"Adicionar à tela inicial"</b>;</li>
       <li>Confirme em <b>"Adicionar"</b>.</li>
     </ol>
 
-    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o aplicativo direto, como um app normal. Instale <u>a partir desta página</u> (não da tela do aplicativo).<br><br>ℹ️ Depois de instalado, o ícone abre o aplicativo direto — sem passar por esta página.</div>
+    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o app direto. Instale <u>a partir desta página</u>.</div>
   </div>
+
+  <a class="abrir-sec" id="abrir" href="https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec">Já instalei · abrir o aplicativo →</a>
 
   <footer>Mand<span style="color:var(--laranja)">ū</span> × CAMPPAX · 2026</footer>
 <script>
 /* ============================================================================
-   Launcher R6 (CONTRACT §12.7)
-   1) localStorage marca a visita → da 2ª abertura em diante vai DIRETO pro app
-      (sem tela de instruções). Escape: ?ficar=1 mostra a página de novo.
-   2) EXPERIMENTO IFRAME (só no modo app/standalone): carrega o /exec dentro de
-      um iframe fullscreen NESTE domínio — o iOS não mostra a barra cinza de
-      "script.google.com". Detecção de sucesso: o app (Index.html R6) manda
-      postMessage('camppax-app-ok') pro window.top quando carrega de verdade.
-      Sem mensagem em 9s (X-Frame-Options bloqueou, login Google quebrou, rede
-      lenta demais) → remove o iframe e cai pro redirect de sempre.
-      · Resultado ESPERADO hoje: FALLBACK — o doGet do Motor ainda não seta
-        setXFrameOptionsMode(ALLOWALL) (pendência Motor R6) e o login Google
-        se recusa a abrir em iframe quando a sessão não existe. O experimento
-        fica pronto e inofensivo: se o Motor liberar o framing e a sessão já
-        existir, o iframe passa a funcionar sozinho.
-      · REVERTER: IFRAME_EXPERIMENT = false (volta ao redirect puro).
+   Launcher R10 (CONTRACT §16.5) — SEM standalone, SEM iframe.
+   Estratégia: o atalho abre em aba NORMAL do Safari (sessão Google compartilhada
+   → sem 403, sem barras pretas). O ensino FORTE de instalação vive DENTRO do app
+   (banner in-app). Aqui:
+   · 1ª visita de todas → mostra a página (instrução é protagonista; nada de auto-open).
+   · visitas seguintes → vai DIRETO pro /exec (uso diário sem 1 toque a mais).
+   · ?instalar=1 → força a página de instruções de novo (pra reinstalar / trocar de aparelho).
+   · botão "abrir" → marca onboarded e abre.
+   O flag é gravado no 1º load (não em toque) mas o redirect só dispara do 2º load em
+   diante — então a 1ª tela nunca "foge" antes da pessoa instalar (lição Tobia 16/07).
    ========================================================================== */
 var APP_URL = document.getElementById('abrir').href;
-var IFRAME_EXPERIMENT = true; // LIGADO 2026-07-17 (Nova versão R7+R8 com ALLOWALL confirmada no ar). Memória: falhou 1x → não insiste; ?iframe=1 força reteste.
-var TIMEOUT_MS = 5000; // §16.3: 9s parado numa splash é uma eternidade; a detecção por contentWindow.length costuma resolver em <1s.
+var verInstrucoes = /[?&]instalar=1/.test(location.search || '');
+var jaOnboard = '';
+try{ jaOnboard = localStorage.getItem('camppax_onboarded') || ''; }catch(e){}
 
-var ficar = /[?&]ficar=1/.test(location.search || '');
-var forcarIframe = /[?&]iframe=1/.test(location.search || ''); // re-testa mesmo com memória "não"
-var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-// FIX 16/07 (Tobia): NO NAVEGADOR a página SEMPRE fica — o redirect por "já visitou"
-// fugia antes da pessoa conseguir tocar Compartilhar→Adicionar à Tela (instalação).
-// Redirect automático SÓ em modo app (atalho instalado). Navegador = 1 toque em "Abrir".
-var iframeMem = '';
-try{ iframeMem = localStorage.getItem('camppax_iframe') || ''; }catch(e){} // ''=nunca testou · 'sim' · 'nao'
+function abrirApp(){ try{ localStorage.setItem('camppax_onboarded','1'); }catch(e){} window.location.replace(APP_URL); }
 
-function irDireto(){ window.location.replace(APP_URL); }
+document.getElementById('abrir').addEventListener('click', function(ev){
+  ev.preventDefault();
+  abrirApp();
+});
 
-function tentarIframe(){
-  document.body.classList.add('app-mode');
-  var ok = false, poll = null, to = null;
-  var fr = document.createElement('iframe');
-  fr.id = 'appframe';
-  fr.src = APP_URL;
-  fr.setAttribute('title', 'Contratos CAMPPAX');
-  function sucesso(){
-    if(ok) return; ok = true;
-    if(to) clearTimeout(to); if(poll) clearInterval(poll);
-    try{ localStorage.setItem('camppax_iframe','sim'); }catch(e){}
-    document.body.classList.add('framed'); // esconde o splash, mostra o iframe
-  }
-  // Falhou (X-Frame bloqueou, login não abriu, rede) → memoriza e NUNCA mais paga o timeout: vai direto.
-  to = setTimeout(function(){ if(!ok){ if(poll) clearInterval(poll); try{ localStorage.setItem('camppax_iframe','nao'); }catch(e){} try{ fr.remove(); }catch(e){} irDireto(); } }, TIMEOUT_MS);
-  // §16.3 · detecção PRIMÁRIA (research): o wrapper do Apps Script expõe contentWindow.length
-  // (nº de subframes) — 1 = userHtml carregou/autorizado · 0 = login/erro. Mais confiável que
-  // postMessage, que o Google às vezes derruba nos frames aninhados. Leitura cross-origin de
-  // .length é permitida; try/catch cobre exceções.
-  poll = setInterval(function(){ try{ if(fr.contentWindow && fr.contentWindow.length === 1) sucesso(); }catch(e){} }, 400);
-  // detecção SECUNDÁRIA: postMessage do app (Index.html manda 'camppax-app-ok' ao carregar)
-  window.addEventListener('message', function(ev){ if(ev && ev.data === 'camppax-app-ok') sucesso(); });
-  document.body.appendChild(fr);
-}
-
-if(!ficar && standalone){
-  var querIframe = IFRAME_EXPERIMENT && (forcarIframe || iframeMem !== 'nao');
-  if(querIframe){ tentarIframe(); }
-  else { irDireto(); }
+if(!verInstrucoes && jaOnboard === '1'){
+  // já passou por aqui antes → uso normal: vai direto pro app
+  window.location.replace(APP_URL);
+} else {
+  // 1ª visita (ou ?instalar=1): mostra a página. Marca o flag pra que a PRÓXIMA
+  // vez vá direto — mas sem redirecionar AGORA (a tela não foge nesta visita).
+  try{ localStorage.setItem('camppax_onboarded','1'); }catch(e){}
 }
 </script>
 </body>
