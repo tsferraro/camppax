@@ -2,119 +2,12 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>location.replace("https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec");</script>
+<meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec">
 <title>CAMPPAX</title>
-<meta name="description" content="Aplicativo de negociação de cacau da CAMPPAX — simule venda e compra, acompanhe as metas do ano e a cotação do dia.">
-<!-- Ícone da tela de início: sobrevive SEM standalone (apple-touch-icon governa o ícone
-     independente do modo app). §16.5 R10 (pesquisa 3ª rodada). -->
-<link rel="preload" as="image" href="icon-192.png">
-<link rel="preload" as="image" href="apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="CAMPPAX">
-<meta name="theme-color" content="#1f3764">
-<!-- §16.5 R10 · DECISÃO: NÃO declarar apple-mobile-web-app-capable / mobile-web-app-capable.
-     O modo "app puro" (standalone) do iOS usa cookie-jar SEPARADO do Safari → o /exec do
-     Apps Script dá 403 (sessão Google não compartilhada) → login → barras pretas. Sem a meta,
-     o atalho abre numa aba NORMAL do Safari, compartilha a sessão, e o app funciona inteiro.
-     iframe e launcher-no-GAS morrem pela mesma causa (ver research-launcher-pwa.md). -->
-<style>
-  :root{--laranja:#FF6E00;--laranja-acao:#C05000;--navy:#1f3764}
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:Ubuntu,Calibri,system-ui,sans-serif;background:var(--navy);color:#fff;
-       min-height:100vh;display:flex;flex-direction:column;align-items:center;
-       text-align:center;padding:26px 20px 30px;gap:14px}
-  img.logo{width:84px;height:84px;border-radius:20px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
-  h1{font-size:24px;font-weight:700}
-  p.sub{font-size:14px;opacity:.9;max-width:360px;line-height:1.5}
-  /* §16.5 R10 · a INSTRUÇÃO é a protagonista (a turma clicava no botão antes de ler e
-     pulava a instalação). O "abrir" fica secundário, embaixo. */
-  .instalar{margin-top:4px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);
-            border-radius:16px;padding:18px;max-width:380px;font-size:14px;line-height:1.6;text-align:left}
-  .instalar h2{font-size:17px;margin-bottom:4px;text-align:center}
-  .instalar .lead{font-size:13px;opacity:.9;text-align:center;margin-bottom:10px}
-  .instalar h3{font-size:14px;margin:14px 0 4px;display:flex;align-items:center;gap:8px}
-  .instalar ol{margin:4px 0 0 20px}
-  .instalar li{margin-bottom:6px}
-  .instalar li.crit{background:rgba(255,110,0,.16);border:1px solid rgba(255,110,0,.5);
-                    border-radius:8px;padding:6px 8px;list-style-position:inside;margin-left:-16px}
-  .instalar .dica{margin-top:12px;font-size:12.5px;opacity:.85;border-top:1px dashed rgba(255,255,255,.25);padding-top:10px}
-  .ico{display:inline-flex;vertical-align:-4px;width:20px;height:20px;background:rgba(255,255,255,.15);
-       border-radius:5px;align-items:center;justify-content:center}
-  .ico svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .ico.dots svg{stroke:none;fill:#fff}
-  b{color:#ffd9b8}
-  /* botão de abrir: SECUNDÁRIO (contorno, não o laranja cheio) — não compete com a instrução */
-  a.abrir-sec{display:inline-block;margin-top:6px;color:#fff;text-decoration:none;font-size:15px;
-        font-weight:600;padding:12px 22px;border-radius:11px;border:1.5px solid rgba(255,255,255,.55)}
-  a.abrir-sec:active{background:rgba(255,255,255,.12)}
-  footer{font-size:11px;opacity:.55;margin-top:8px}
-</style>
+<meta name="robots" content="noindex">
 </head>
-<body>
-  <img class="logo" src="icon-192.png" alt="CAMPPAX">
-  <h1>Contratos CAMPPAX</h1>
-  <p class="sub">Simule a <b>venda</b> ou a <b>compra</b> de cacau antes de fechar o negócio, acompanhe as <b>metas do ano</b> e registre a <b>cotação do dia</b>.</p>
-
-  <div class="instalar">
-    <h2>📲 Instale na tela de início</h2>
-    <p class="lead">Vira um app com o ícone Mandū e abre rápido. Faça isto <b>aqui nesta página</b>, antes de abrir o app.</p>
-
-    <h3><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> No iPhone (Safari)</h3>
-    <ol>
-      <li>Toque em <b>Compartilhar</b> <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><rect x="5" y="11" width="14" height="10" rx="2"/></svg></span> (o quadradinho com a seta pra cima);</li>
-      <li>Toque em <b>"Adicionar à Tela de Início"</b>;</li>
-      <li class="crit">⚠️ Se aparecer <b>"Abrir como Web App"</b>, <b>DESLIGUE</b> essa opção — senão o app pede login e não abre;</li>
-      <li>Toque em <b>"Adicionar"</b>.</li>
-    </ol>
-
-    <h3><span class="ico dots"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg></span> No Android (Chrome)</h3>
-    <ol>
-      <li>Toque no menu <b>⋮</b> (três pontinhos, canto superior direito);</li>
-      <li>Toque em <b>"Adicionar à tela inicial"</b>;</li>
-      <li>Confirme em <b>"Adicionar"</b>.</li>
-    </ol>
-
-    <div class="dica">✅ Pronto: o ícone <b>CAMPPAX</b> aparece na tela do celular e abre o app direto. Instale <u>a partir desta página</u>.</div>
-  </div>
-
-  <a class="abrir-sec" id="abrir" href="https://script.google.com/macros/s/AKfycbzcv6DJqpEBywX5hLL7GTqwq8c4hKr1Kxj57-t_KpPUEI6PczeYvqt0wL34r8XXjrWH/exec">Já instalei · abrir o aplicativo →</a>
-
-  <footer>Mand<span style="color:var(--laranja)">ū</span> × CAMPPAX · 2026</footer>
-<script>
-/* ============================================================================
-   Launcher R10 (CONTRACT §16.5) — SEM standalone, SEM iframe.
-   Estratégia: o atalho abre em aba NORMAL do Safari (sessão Google compartilhada
-   → sem 403, sem barras pretas). O ensino FORTE de instalação vive DENTRO do app
-   (banner in-app). Aqui:
-   · 1ª visita de todas → mostra a página (instrução é protagonista; nada de auto-open).
-   · visitas seguintes → vai DIRETO pro /exec (uso diário sem 1 toque a mais).
-   · ?instalar=1 → força a página de instruções de novo (pra reinstalar / trocar de aparelho).
-   · botão "abrir" → marca onboarded e abre.
-   O flag é gravado no 1º load (não em toque) mas o redirect só dispara do 2º load em
-   diante — então a 1ª tela nunca "foge" antes da pessoa instalar (lição Tobia 16/07).
-   ========================================================================== */
-var APP_URL = document.getElementById('abrir').href;
-var verInstrucoes = /[?&]instalar=1/.test(location.search || '');
-var jaOnboard = '';
-try{ jaOnboard = localStorage.getItem('camppax_onboarded') || ''; }catch(e){}
-
-function abrirApp(){ try{ localStorage.setItem('camppax_onboarded','1'); }catch(e){} window.location.replace(APP_URL); }
-
-document.getElementById('abrir').addEventListener('click', function(ev){
-  ev.preventDefault();
-  abrirApp();
-});
-
-if(!verInstrucoes && jaOnboard === '1'){
-  // já passou por aqui antes → uso normal: vai direto pro app
-  window.location.replace(APP_URL);
-} else {
-  // 1ª visita (ou ?instalar=1): mostra a página. Marca o flag pra que a PRÓXIMA
-  // vez vá direto — mas sem redirecionar AGORA (a tela não foge nesta visita).
-  try{ localStorage.setItem('camppax_onboarded','1'); }catch(e){}
-}
-</script>
-</body>
+<body></body>
 </html>
